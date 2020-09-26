@@ -20,13 +20,13 @@ Base = declarative_base()
 
 # the Auto Nation customer that whose car may be in video feed
 class Customer(Base):
-        __tablename__ = 'Contacts'
+		__tablename__ = 'Contacts'
 
-        ID = Column(Integer, primary_key=True)
-        FirstName = Column(String(50), nullable=False)
-        LastName = Column(String(50), nullable=False)
-        Email = Column(String(80), nullable=True)
-        PhoneNumber = Column(String(20), nullable=False)
+		ID = Column(Integer, primary_key=True)
+		FirstName = Column(String(50), nullable=False)
+		LastName = Column(String(50), nullable=False)
+		Email = Column(String(80), nullable=True)
+		PhoneNumber = Column(String(20), nullable=False)
 		VehicleType = Column(String(20), nullable=True)
 		# advisor name / license plate
 		LicensePlate = Column(String(10), nullable=False)
@@ -35,17 +35,17 @@ class Customer(Base):
 		# holds objects that are dated service instances
 		# We can still do this just need a separate table or nonrelational DB
 
-        @property
-        def serialize(self):
-                return {
-                        'FirstName' : self.FirstName,
-                        'LastName' : self.LastName,
-                        'Email' : self.Email,
-                        'Phone' : self.PhoneNumber,
-                        'ID': self.ID,
-                        'LicensePlate' : self.LicensePlate,
+		@property
+		def serialize(self):
+				return {
+						'FirstName' : self.FirstName,
+						'LastName' : self.LastName,
+						'Email' : self.Email,
+						'Phone' : self.PhoneNumber,
+						'ID': self.ID,
+						'LicensePlate' : self.LicensePlate,
 						'VehicleType' : self.VehicleType,
-                }
+				}
 
 
 # generic service instance
@@ -74,8 +74,8 @@ class Service(Base):
 
 
 '''
-        GET: The GET method is only used to retrieve information from the given server. Requests using this method should only recover data and should have no other effect on the data.
-        POST: A POST request is used to send data back to the server using HTML forms.
-        PUT: A PUT request replaces all the current representations of the target resource with the uploaded content.
-        DELETE: A DELETE request removes all the current representations of the target resource given by URI.
+		GET: The GET method is only used to retrieve information from the given server. Requests using this method should only recover data and should have no other effect on the data.
+		POST: A POST request is used to send data back to the server using HTML forms.
+		PUT: A PUT request replaces all the current representations of the target resource with the uploaded content.
+		DELETE: A DELETE request removes all the current representations of the target resource given by URI.
 '''
