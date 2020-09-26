@@ -11,9 +11,12 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+<<<<<<< HEAD
 # THIS IS WHERE THE UPLOADED FILES GET SAVED
 app.config['UPLOAD_FOLDER'] = '/tmp/cars'
 engine = create_engine('mysql+mysqlconnector://lp:plate@35.237.243.227/auto')
+=======
+>>>>>>> 006c7eac2463a5278c50e534ec1a4796dc061916
 Base.metadata.create_all(engine)
 
 DBSession = sessionmaker(bind=engine)
