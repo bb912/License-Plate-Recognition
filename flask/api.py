@@ -51,7 +51,8 @@ def create_customer(first_name, last_name, phone, email, lp_num):
 		add_customer = Customer(FirstName=first_name, LastName=last_name,
 														PhoneNumber=phone,
 														Email=email,
-														LicensePlate=lp_num)
+														LicensePlate=lp_num,
+														VehicleType=vehicle)
 		session.add(added_Customer)
 		session.commit()
 		return "Added Customer with id %s" % added_Customer.ID
@@ -65,7 +66,7 @@ def delete_customer(id):
 
 
 # update an existing Customer
-def update_customer(customer_id, first_name, last_name, phone, email, lp_num):
+def update_customer(customer_id, first_name, last_name, phone, email, lp_num, vehicle):
 		updated_Customer = session.query(Customer).filter_by(ID=customer_id).one()
 
 		if first_name:
@@ -78,6 +79,8 @@ def update_customer(customer_id, first_name, last_name, phone, email, lp_num):
 				updated_Customer.Email = email
 		if lp_num:
 				updated_Customer.LicensePlate = lp_num
+		if vehicle:
+				updated_Customer.VehicleType = vehicle
 
 		session.add(updated_Customer)
 		session.commit()
@@ -105,7 +108,8 @@ def PostNewCustomer():
 		phone = body.get('PhoneNumber', '')
 		email = body.get('Email', '')
 		lp = body.get('LicensePlate', '')
-		return create_new_Customer(first, last, phone, email, lp)
+		vt = body.get('VehicleType', '')
+		return create_new_Customer(first, last, phone, email, lp, vt)
 
 
 # get a specific Customer by Customer ID, or update Customer, or delete Customer
@@ -124,7 +128,7 @@ def CustomersFunctionID(id):
 				phone = body.get('PhoneNumber', '')
 				email = body.get('Email', '')
 				user = body.get('UserID', '')
-				return update_Customer(id, first, last, phone, email, lp)
+				return update_Customer(id, first, last, phone, email, lp, vt)
 
 
 # get a specific Customer by Customer ID, or update Customer, or delete Customer
