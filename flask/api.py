@@ -25,7 +25,9 @@ def not_found():
 		return make_response(jsonify({'error': 'Not found'}), 404)
 
 
-
+@app.route('/Hello')
+def hello():
+    return 'Hello, World!'
 """
 
 Customers API
