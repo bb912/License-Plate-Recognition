@@ -11,12 +11,9 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-<<<<<<< HEAD
 # THIS IS WHERE THE UPLOADED FILES GET SAVED
 app.config['UPLOAD_FOLDER'] = '/tmp/cars'
 engine = create_engine('mysql+mysqlconnector://lp:plate@35.237.243.227/auto')
-=======
->>>>>>> 006c7eac2463a5278c50e534ec1a4796dc061916
 Base.metadata.create_all(engine)
 
 DBSession = sessionmaker(bind=engine)
@@ -254,12 +251,12 @@ def whichCustomer():
 
 				# "vote" on the result, call above functions to search for which customer it is
 
-				return update_user(id, first, last, login, password)
+				return None
 
 
 if __name__ == '__main__':
 		pymysql.install_as_MySQLdb()
-		app.debug = False
+		app.debug = True
 		http_server = WSGIServer(('', 4996), app)
 
 		http_server.serve_forever()

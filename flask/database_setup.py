@@ -27,7 +27,7 @@ class Customer(Base):
         LastName = Column(String(50), nullable=False)
         Email = Column(String(80), nullable=True)
         PhoneNumber = Column(String(20), nullable=False)
-
+		VehicleType = Column(String(20), nullable=True)
 		# advisor name / license plate
 		LicensePlate = Column(String(10), nullable=False)
 		# if we had more time...
@@ -44,6 +44,7 @@ class Customer(Base):
                         'Phone' : self.PhoneNumber,
                         'ID': self.ID,
                         'LicensePlate' : self.LicensePlate,
+						'VehicleType' : self.VehicleType,
                 }
 
 
@@ -54,7 +55,7 @@ class Service(Base):
 	ID = Column(Integer, primary_key=True)
 	CustomerID = Column(Integer, nullable=False)
 	Service = Column(String(80), nullable=False)
-	AdvisorName = Columns(String(10), nullable=False)
+	AdvisorName = Columns(String(20), nullable=False)
 
 	# TODO: Date time object?????
 	Date = Column(String(50), nullable=False)
