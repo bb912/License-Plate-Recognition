@@ -18,7 +18,7 @@ import hashlib
 # create declarative_base instance
 Base = declarative_base()
 
-
+# the Auto Nation customer that whose car may be in video feed
 class Customer(Base):
         __tablename__ = 'Contacts'
 
@@ -27,16 +27,13 @@ class Customer(Base):
         LastName = Column(String(50), nullable=False)
         Email = Column(String(80), nullable=True)
         PhoneNumber = Column(String(20), nullable=False)
+
+		# advisor name / license plate
 		LicensePlate = Column(String(10), nullable=False)
-		# Date time object????
-		ApptTime = Column(String(10),  nullable=True)
 		# if we had more time...
 		# make History a separate model / object
 		# holds objects that are dated service instances
 		# We can still do this just need a separate table or nonrelational DB
-
-
-        UserID = Column(Integer, nullable=False)
 
         @property
         def serialize(self):
@@ -46,17 +43,19 @@ class Customer(Base):
                         'Email' : self.Email,
                         'Phone' : self.PhoneNumber,
                         'ID': self.ID,
-                        'UserID' : self.UserID,
+                        'LicensePlate' : self.LicensePlate,
                 }
 
 
-
-class ServiceInstance(Base):
+# generic service instance
+class Service(Base):
 	__tablename__ = 'ServiceInstance'
 
 	ID = Column(Integer, primary_key=True)
 	CustomerID = Column(Integer, nullable=False)
 	Service = Column(String(80), nullable=False)
+	AdvisorName = Columns(String(10), nullable=False)
+
 	# TODO: Date time object?????
 	Date = Column(String(50), nullable=False)
 
@@ -65,13 +64,12 @@ class ServiceInstance(Base):
 			return {
 					'CustomerID' : self.CustomerID,
 					'ID': self.ID,
+					'Service': self.Service,
 					'Date' : self.Date,
+					'AdvisorName': self.AdvisorName
 			}
 
 
-# THIS WILL BE DIFFERENT >>>>>> I DONT WANT TO USE MYSQL
-engine = create_engine('mysql+mysqlconnector://cop43312_db:accessMyData@localhost:3306/cop43312_database')
-Base.metadata.create_all(engine)
 
 
 '''
