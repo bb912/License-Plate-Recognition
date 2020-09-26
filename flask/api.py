@@ -201,19 +201,18 @@ def PostNewservice():
 		service = body.get('Service', '')
 		advisor = body.get('AdvisorName', '')
 		date = body.get('Date', '')
-		return create_new_service(sid, cid, service, advisor, date)
+		return create_new_service(cid, service, advisor, date)
 
 
 # get a specific service by service ID, or update service, or delete service
 @app.route('/servicesApi/<int:id>', methods=['POST'])
 def servicesFunctionID(id):
 
-		first = body.get('FirstName', '')
-		last = body.get('LastName', '')
-		phone = body.get('PhoneNumber', '')
-		email = body.get('Email', '')
-		user = body.get('UserID', '')
-		return update_service(id, first, last, phone, email)
+		cid = body.get('CustomerID', '')
+		service = body.get('Service', '')
+		advisor = body.get('AdvisorName', '')
+		date = body.get('Date', '')
+		return update_service(sid, cid, service, advisor, date)
 
 
 # get a specific service by service ID, or update service, or delete service
