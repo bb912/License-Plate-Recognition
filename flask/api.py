@@ -10,7 +10,6 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
-engine = create_engine('mysql+mysqlconnector://lp:plate@35.237.243.227/auto')
 Base.metadata.create_all(engine)
 
 DBSession = sessionmaker(bind=engine)
