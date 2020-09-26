@@ -96,7 +96,7 @@ def update_customer(customer_id, first_name, last_name, phone, email, lp_num):
 def PostNewCustomer():
 
 		#if request.method == "OPTIONS": # CORS preflight
-        #		return _build_cors_prelight_response()
+		#		return _build_cors_prelight_response()
 
 		body = request.get_json(force=True)
 
