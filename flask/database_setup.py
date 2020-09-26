@@ -55,7 +55,7 @@ class Service(Base):
 	ID = Column(Integer, primary_key=True)
 	CustomerID = Column(Integer, nullable=False)
 	Service = Column(String(80), nullable=False)
-	AdvisorName = Columns(String(20), nullable=False)
+	AdvisorName = Column(String(20), nullable=False)
 
 	# TODO: Date time object?????
 	Date = Column(String(50), nullable=False)
