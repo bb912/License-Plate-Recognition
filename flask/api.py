@@ -6,10 +6,13 @@ from sqlalchemy import create_engine, or_, asc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Customer, Service
 from gevent.pywsgi import WSGIServer
-from flask_cors import CORS
+from werkzeug.utils import secure_filename
+from datetime import datetime
 
 app = Flask(__name__)
 
+# THIS IS WHERE THE UPLOADED FILES GET SAVED
+app.config['UPLOAD_FOLDER'] = '/tmp/cars'
 engine = create_engine('mysql+mysqlconnector://lp:plate@35.237.243.227/auto')
 Base.metadata.create_all(engine)
 
@@ -24,95 +27,93 @@ def not_found():
 
 
 """
-api functions for contacts
+
+Customers API
+@app.route('/CustomersApi', methods=['POST'])
+		-add new customers for database input
+@app.route('/CustomersApi/<int:id>', methods=['GET', 'POST'])
+		-update or get customer based on id
+@app.route('/CustomersApi/<int:id>/delete', methods=['POST'])
+		-delete customer based on id
+
+
 """
 from flask import jsonify
 
 
-# gets all contacts for a specific user_id
-def get_contacts(user_id):
-		contacts = session.query(Contact).filter_by(UserID=user_id)
-		return jsonify(Contact=[c.serialize for c in contacts])
+# get a single Customer by its id number
+def get_customer(lp_num):
+		customer = session.query(Customer).filter_by(LicensePlate = lp_num).one()
+		return jsonify(Customer=Customer.serialize)
 
-# get a single contact by its id number
-def get_contact(contact_id):
-		contact = session.query(Contact).filter_by(ID=contact_id).one()
-		return jsonify(Contact=contact.serialize)
-
-# create a new contact given all information
-def create_new_contact(user_id, first_name, last_name, phone, email):
-		added_contact = Contact(FirstName=first_name, LastName=last_name,
-														PhoneNumber=phone, Email=email, UserID=user_id)
-		session.add(added_contact)
+# create a new Customer given all information
+def create_customer(user_id, first_name, last_name, phone, email, lp_num):
+		add_customer = Customer(FirstName=first_name, LastName=last_name,
+														PhoneNumber=phone,
+														Email=email,
+														LicensePlate=lp_num)
+		session.add(added_Customer)
 		session.commit()
-		return "Added contact with id %s" % added_contact.ID
+		return "Added Customer with id %s" % added_Customer.ID
 
-# delete contact by contact ID
-def delete_contact(id):
-		contact_to_delete = session.query(Contact).filter_by(ID=id).one()
-		session.delete(contact_to_delete)
+# delete Customer by Customer ID
+def delete_customer(id):
+		Customer_to_delete = session.query(Customer).filter_by(ID=id).one()
+		session.delete(Customer_to_delete)
 		session.commit()
-		return "Removed contact with id %s" % id
+		return "Removed Customer with id %s" % id
 
 
-# update an existing contact
-def update_contact(contact_id, first_name, last_name, phone, email):
-		updated_contact = session.query(Contact).filter_by(ID=contact_id).one()
+# update an existing Customer
+def update_customer(customer_id, first_name, last_name, phone, email, lp_num):
+		updated_Customer = session.query(Customer).filter_by(ID=customer_id).one()
 
 		if first_name:
-				updated_contact.FirstName = first_name
+				updated_Customer.FirstName = first_name
 		if last_name:
-				updated_contact.LastName = last_name
+				updated_Customer.LastName = last_name
 		if phone:
-				updated_contact.PhoneNumber = phone
+				updated_Customer.PhoneNumber = phone
 		if email:
-				updated_contact.Email = email
-		session.add(updated_contact)
+				updated_Customer.Email = email
+		if lp_num:
+				updated_Customer.LicensePlate = lp_num
+
+		session.add(updated_Customer)
 		session.commit()
 
-		return "Updated contact with id %s" % contact_id
+		return "Updated Customer with id %s" % Customer_id
 
-# list contacts or add a contact (for a specific user)
+# list Customers or add a Customer (for a specific user)
 
 # GET request requires user_id in json
 
 #POST request requires first_name, last_name, phone, email, user_id,
 
-#ADDING A CONTACT FOR A USER
+#ADDING A Customer FOR A USER
 @app.route('/')
-@app.route('/contactsApi', methods=['POST'])
-#@cross_origin()
-def contactsFunction():
+@app.route('/CustomersApi', methods=['POST'])
+def PostNewCustomer():
 
 		#if request.method == "OPTIONS": # CORS preflight
         #		return _build_cors_prelight_response()
 
 		body = request.get_json(force=True)
-		#body = request.text
-		#data = json.loads(data)
-		#print(body)
-
-		# list all contacts for user
-		#if request.method == 'GET':
-		#		return get_contacts(body.get('UserID', ''))
-		#elif request.method == 'POST':
-
-
 
 		first = body.get('FirstName', '')
 		last = body.get('LastName', '')
 		phone = body.get('PhoneNumber', '')
 		email = body.get('Email', '')
 		user = body.get('UserID', '')
-		return create_new_contact(user, first, last, phone, email)
+		return create_new_Customer(user, first, last, phone, email)
 
 
-# get a specific contact by contact ID, or update contact, or delete contact
-@app.route('/contactsApi/<int:id>', methods=['GET', 'POST'])
+# get a specific Customer by Customer ID, or update Customer, or delete Customer
+@app.route('/CustomersApi/<int:id>', methods=['GET', 'POST'])
 #@cross_origin()
-def contactsFunctionID(id):
+def CustomersFunctionID(id):
 		if request.method == 'GET':
-				return get_contact(id)
+				return get_Customer(id)
 
 		elif request.method == 'POST':
 
@@ -123,152 +124,133 @@ def contactsFunctionID(id):
 				phone = body.get('PhoneNumber', '')
 				email = body.get('Email', '')
 				user = body.get('UserID', '')
-				return update_contact(id, first, last, phone, email)
+				return update_Customer(id, first, last, phone, email)
 
 
-# get a specific contact by contact ID, or update contact, or delete contact
-@app.route('/contactsApi/<int:id>/delete', methods=['POST'])
+# get a specific Customer by Customer ID, or update Customer, or delete Customer
+@app.route('/CustomersApi/<int:id>/delete', methods=['POST'])
 #@cross_origin()
-def contactsFunctionDelete(id):
-		return delete_contact(id)
-
-
-# search contacts ordered by last name.
-# Needs SearchTerm and UserID in request args, no body
-@app.route('/contactsApi/search', methods=['GET', 'POST'])
-def searchFunctionID():
-
-	body = request.args
-
-	search_term = body.get('SearchTerm')
-	user = body.get('UserID')
-
-	return get_searched_contacts(search_term, user)
-
-def get_searched_contacts(search_term, user):
-
-	search_term = "{}%".format(search_term)
-
-	contacts_for_user = \
-		session.query(Contact).filter_by(UserID=user).filter( \
-			or_(Contact.FirstName.like(search_term), \
-				Contact.LastName.like(search_term), \
-				Contact.PhoneNumber.like(search_term), \
-				Contact.Email.like(search_term))).order_by(asc(Contact.LastName))
-
-	return jsonify({idx: c.serialize for idx, c in enumerate(contacts_for_user)})
+def CustomersFunctionDelete(id):
+		return delete_Customer(id)
 
 
 
-'''
-USER API
-'''
-# get personal info given a single user_id
-def user_info(id):
+"""
 
-		user = session.query(User).filter_by(ID=id).one()
-		return jsonify(User=user.serialize)
+Service API
 
-def create_new_user(first_name, last_name, login, password):
 
-		same_user_name = session.query(User).filter_by(Login=login).count()
 
-		if same_user_name > 0:
-			return "Username is already in Use, Please Choose another", 409
+"""
 
-		hash_pass = hash_hex(password)
+# get a single Customer by its id number
+def get_sevices(lp_num):
+		service = session.query(Customer).filter_by(LicensePlate = lp_num).one()
+		return jsonify(Customer=Customer.serialize)
 
-		added_user = User(FirstName=first_name,LastName=last_name,Login=login,Password=hash_pass)
-		session.add(added_user)
+# create a new service given all information
+def create_service(customer_id, service, advisor_name, date):
+		add_service = service(CustomerID=customer_id, Service=service,
+														AdvisorName=advisor_name,
+														Date=date)
+		session.add(added_service)
+		session.commit()
+		return "Added service with id %s" % added_service.ID
+
+# delete service by service ID
+def delete_service(id):
+		service_to_delete = session.query(service).filter_by(ID=id).one()
+		session.delete(service_to_delete)
+		session.commit()
+		return "Removed service with id %s" % id
+
+
+# update an existing service
+def update_service(service_id, customer_id, service, advisor_name, date):
+
+		if not service_id:
+			return "Error, include sevice_id"
+
+		updated_service = session.query(service).filter_by(ID=service_id).one()
+
+		if customer_id:
+				updated_service.CustomerID = customer_id
+		if service:
+				updated_service.Service = service
+		if advisor_name:
+				updated_service.AdvisorName = advisor_name
+		if date:
+				updated_service.Date = date
+
+
+		session.add(updated_service)
 		session.commit()
 
-		return "Added user with ID %s" % added_user.ID, 200
-
-		#return jsonify(User=added_user.serialize)
+		return "Updated service with id %s" % service_id
 
 
 
-def update_user(id, first_name, last_name, login, password):
-
-		updated_user = session.query(User).filter_by(ID=id).one()
-		if first_name:
-				updated_user.FirstName = first_name
-		if last_name:
-				updated_user.LastName = last_name
-		if login:
-				updated_user.Login = login
-		if password:
-				updated_user.Password = hash_hex(password)
-		session.add(updated_user)
-		session.commit()
-
-		return "Updated User with id %s" % id
-
-# returns hex digest version of hashed md5 password
-def hash_hex(password):
-	return hashlib.md5(password.encode()).hexdigest()
-
-#verifies password against password in database
-def verifyPassword(login, password):
-
-	user_to_verify = session.query(User).filter_by(Login=login).one()
-
-	if user_to_verify is not None:
-		if hash_hex(password) == user_to_verify.Password:
-
-			return jsonify(User=user_to_verify.serialize)
-			#return "Correct Password for %s" % login
-		else:
-			return "Incorrect Password for %s" % login
-	else:
-		return "User %s not Found" % login
-
-
-
-# either get the user's personal info or create a new user
+# ADDING A service FOR A USER
 @app.route('/')
-@app.route('/userApi', methods=['GET', 'POST'])
-#@cross_origin()
-def usersFunction():
+@app.route('/servicesApi', methods=['POST'])
+def PostNewservice():
 
-		body = request.get_json()
+		body = request.get_json(force=True)
 
-		# list all contacts for user
+		cid = body.get('CustomerID', '')
+		service = body.get('Service', '')
+		advisor = body.get('AdvisorName', '')
+		date = body.get('Date', '')
+		return create_new_service(sid, cid, service, advisor, date)
+
+
+# get a specific service by service ID, or update service, or delete service
+@app.route('/servicesApi/<int:id>', methods=['GET', 'POST'])
+def servicesFunctionID(id):
 		if request.method == 'GET':
-				return user_info(body.get('ID', ''))
+				return get_service(id)
 
-		# for registering
 		elif request.method == 'POST':
+
+				body = request.get_json(force=True)
+
 				first = body.get('FirstName', '')
 				last = body.get('LastName', '')
-				login = body.get('Login', '')
-				password = body.get('Password', '')
-				return create_new_user(first, last, login, password)
+				phone = body.get('PhoneNumber', '')
+				email = body.get('Email', '')
+				user = body.get('UserID', '')
+				return update_service(id, first, last, phone, email)
 
 
-@app.route('/')
-@app.route('/userApi/login', methods=['POST'])
+# get a specific service by service ID, or update service, or delete service
+@app.route('/servicesApi/<int:id>/delete', methods=['POST'])
 #@cross_origin()
-def userLogin():
+def servicesFunctionDelete(id):
+		return delete_service(id)
 
-	body = request.get_json()
 
-	# for logging in
-	if request.method == 'POST':
-		return verifyPassword(body.get('Login'), body.get('Password'))
 
+
+"""
+Photo uploading endpoints and user searching
+
+"""
 
 # for updating User's personal information
-@app.route('/userApi/<int:id>', methods=['PUT'])
+@app.route('/whichCustomer', methods=['POST'])
 #@cross_origin()
-def usersFunctionID(id):
-		body = request.get_json()
+def whichCustomer():
+		if request.method == 'POST':
+				file1 = request.files.get('a', None);
+				file2 = request.files.get('b', None);
+				file3 = request.files.get('c', None);
 
-		if request.method == 'PUT':
-				first = body.get('FirstName', '')
-				last = body.get('LastName', '')
-				login = body.get('Login', '')
-				password = body.get('Password', '')
+				# TODO: CALL THE BASH SCRIPT HERE ... conda activate && etc
+
+				# scrape csv file
+
+				# "vote" on the result, call above functions to search for which customer it is
+
 				return update_user(id, first, last, login, password)
 
 
