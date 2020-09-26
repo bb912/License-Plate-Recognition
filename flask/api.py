@@ -254,7 +254,7 @@ def whichCustomer():
 if __name__ == '__main__':
 		pymysql.install_as_MySQLdb()
 		app.debug = True
-		http_server = WSGIServer(('', 4996), app)
+		#http_server = WSGIServer(('', 4996), app)
 		print("serving...forever")
-		http_server.serve_forever()
-		#app.run(host='0.0.0.0', port=4996)
+		#http_server.serve_forever()
+		app.run(host='0.0.0.0', port=4996)
