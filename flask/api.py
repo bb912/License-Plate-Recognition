@@ -47,7 +47,7 @@ def get_customer(lp_num):
 		return jsonify(Customer=Customer.serialize)
 
 # create a new Customer given all information
-def create_customer(user_id, first_name, last_name, phone, email, lp_num):
+def create_customer(first_name, last_name, phone, email, lp_num):
 		add_customer = Customer(FirstName=first_name, LastName=last_name,
 														PhoneNumber=phone,
 														Email=email,
@@ -104,8 +104,8 @@ def PostNewCustomer():
 		last = body.get('LastName', '')
 		phone = body.get('PhoneNumber', '')
 		email = body.get('Email', '')
-		user = body.get('UserID', '')
-		return create_new_Customer(user, first, last, phone, email)
+		lp = body.get('LicensePlate', '')
+		return create_new_Customer(first, last, phone, email, lp)
 
 
 # get a specific Customer by Customer ID, or update Customer, or delete Customer
@@ -124,7 +124,7 @@ def CustomersFunctionID(id):
 				phone = body.get('PhoneNumber', '')
 				email = body.get('Email', '')
 				user = body.get('UserID', '')
-				return update_Customer(id, first, last, phone, email)
+				return update_Customer(id, first, last, phone, email, lp)
 
 
 # get a specific Customer by Customer ID, or update Customer, or delete Customer
@@ -144,8 +144,8 @@ Service API
 """
 
 # get a single Customer by its id number
-def get_sevices(lp_num):
-		service = session.query(Customer).filter_by(LicensePlate = lp_num).one()
+def get_services(lp_num):
+		service = session.query(Customer).filter_by(LicensePlate = lp_num)
 		return jsonify(Customer=Customer.serialize)
 
 # create a new service given all information
@@ -205,21 +205,15 @@ def PostNewservice():
 
 
 # get a specific service by service ID, or update service, or delete service
-@app.route('/servicesApi/<int:id>', methods=['GET', 'POST'])
+@app.route('/servicesApi/<int:id>', methods=['POST'])
 def servicesFunctionID(id):
-		if request.method == 'GET':
-				return get_service(id)
 
-		elif request.method == 'POST':
-
-				body = request.get_json(force=True)
-
-				first = body.get('FirstName', '')
-				last = body.get('LastName', '')
-				phone = body.get('PhoneNumber', '')
-				email = body.get('Email', '')
-				user = body.get('UserID', '')
-				return update_service(id, first, last, phone, email)
+		first = body.get('FirstName', '')
+		last = body.get('LastName', '')
+		phone = body.get('PhoneNumber', '')
+		email = body.get('Email', '')
+		user = body.get('UserID', '')
+		return update_service(id, first, last, phone, email)
 
 
 # get a specific service by service ID, or update service, or delete service
