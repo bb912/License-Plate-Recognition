@@ -11,36 +11,11 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# THIS IS WHERE THE UPLOADED FILES GET SAVED
-app.config['UPLOAD_FOLDER'] = '/tmp/cars'
-engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto')
-Base.metadata.create_all(engine)
-
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
-
-
-@app.errorhandler(404)
-def not_found():
-		return make_response(jsonify({'error': 'Not found'}), 404)
 
 
 @app.route('/')
 def hello():
     return 'Hello, World!'
-"""
-
-Customers API
-@app.route('/CustomersApi', methods=['POST'])
-		-add new customers for database input
-@app.route('/CustomersApi/<int:id>', methods=['GET', 'POST'])
-		-update or get customer based on id
-@app.route('/CustomersApi/<int:id>/delete', methods=['POST'])
-		-delete customer based on id
-
-
-"""
-from flask import jsonify
 
 
 if __name__ == '__main__':

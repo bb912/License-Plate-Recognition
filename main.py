@@ -13,7 +13,9 @@ app = Flask(__name__)
 
 # THIS IS WHERE THE UPLOADED FILES GET SAVED
 app.config['UPLOAD_FOLDER'] = '/tmp/cars'
-engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto')
+#engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto')
+engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto?unix_socket=cloudsql/auto-nation')
+
 Base.metadata.create_all(engine)
 
 DBSession = sessionmaker(bind=engine)
@@ -27,7 +29,7 @@ def not_found():
 
 @app.route('/')
 def hello():
-    return 'Hello, World!'
+	return 'Hello, World!'
 """
 
 Customers API
@@ -245,7 +247,7 @@ def whichCustomer():
 				file3 = request.files.get('c', None);
 
 				if file1 and file1.filename:
-                	file1.save(os.path.join(UPLOADS_PATH, secure_filename(file1.filename)))
+					file1.save(os.path.join(UPLOADS_PATH, secure_filename(file1.filename)))
 					a = 1
 				if file2 and file2.filename:
 					file2.save(os.path.join(UPLOADS_PATH, secure_filename(file2.filename)))
