@@ -99,10 +99,9 @@ def update_customer(customer_id, first_name, last_name, phone, email, lp_num, ve
 #POST request requires first_name, last_name, phone, email, user_id,
 
 #ADDING A Customer FOR A USER
-@app.route('/')
 @app.route('/CustomersApi', methods=['POST'])
 def PostNewCustomer():
-
+			
 		#if request.method == "OPTIONS": # CORS preflight
 		#		return _build_cors_prelight_response()
 
