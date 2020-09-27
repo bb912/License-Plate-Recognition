@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 # THIS IS WHERE THE UPLOADED FILES GET SAVED
 app.config['UPLOAD_FOLDER'] = '/tmp/cars'
-engine = create_engine('mysql+mysqlconnector://lp:plate@35.237.243.227/auto')
+engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto')
 Base.metadata.create_all(engine)
 
 DBSession = sessionmaker(bind=engine)
@@ -25,7 +25,9 @@ def not_found():
 		return make_response(jsonify({'error': 'Not found'}), 404)
 
 
-
+@app.route('/')
+def hello():
+    return 'Hello, World!'
 """
 
 Customers API
@@ -47,11 +49,12 @@ def get_customer(lp_num):
 		return jsonify(Customer=Customer.serialize)
 
 # create a new Customer given all information
-def create_customer(user_id, first_name, last_name, phone, email, lp_num):
+def create_customer(first_name, last_name, phone, email, lp_num):
 		add_customer = Customer(FirstName=first_name, LastName=last_name,
 														PhoneNumber=phone,
 														Email=email,
-														LicensePlate=lp_num)
+														LicensePlate=lp_num,
+														VehicleType=vehicle)
 		session.add(added_Customer)
 		session.commit()
 		return "Added Customer with id %s" % added_Customer.ID
@@ -65,7 +68,7 @@ def delete_customer(id):
 
 
 # update an existing Customer
-def update_customer(customer_id, first_name, last_name, phone, email, lp_num):
+def update_customer(customer_id, first_name, last_name, phone, email, lp_num, vehicle):
 		updated_Customer = session.query(Customer).filter_by(ID=customer_id).one()
 
 		if first_name:
@@ -78,6 +81,8 @@ def update_customer(customer_id, first_name, last_name, phone, email, lp_num):
 				updated_Customer.Email = email
 		if lp_num:
 				updated_Customer.LicensePlate = lp_num
+		if vehicle:
+				updated_Customer.VehicleType = vehicle
 
 		session.add(updated_Customer)
 		session.commit()
@@ -96,7 +101,7 @@ def update_customer(customer_id, first_name, last_name, phone, email, lp_num):
 def PostNewCustomer():
 
 		#if request.method == "OPTIONS": # CORS preflight
-        #		return _build_cors_prelight_response()
+		#		return _build_cors_prelight_response()
 
 		body = request.get_json(force=True)
 
@@ -104,8 +109,9 @@ def PostNewCustomer():
 		last = body.get('LastName', '')
 		phone = body.get('PhoneNumber', '')
 		email = body.get('Email', '')
-		user = body.get('UserID', '')
-		return create_new_Customer(user, first, last, phone, email)
+		lp = body.get('LicensePlate', '')
+		vt = body.get('VehicleType', '')
+		return create_new_Customer(first, last, phone, email, lp, vt)
 
 
 # get a specific Customer by Customer ID, or update Customer, or delete Customer
@@ -124,7 +130,7 @@ def CustomersFunctionID(id):
 				phone = body.get('PhoneNumber', '')
 				email = body.get('Email', '')
 				user = body.get('UserID', '')
-				return update_Customer(id, first, last, phone, email)
+				return update_Customer(id, first, last, phone, email, lp, vt)
 
 
 # get a specific Customer by Customer ID, or update Customer, or delete Customer
@@ -144,8 +150,8 @@ Service API
 """
 
 # get a single Customer by its id number
-def get_sevices(lp_num):
-		service = session.query(Customer).filter_by(LicensePlate = lp_num).one()
+def get_services(lp_num):
+		service = session.query(Customer).filter_by(LicensePlate = lp_num)
 		return jsonify(Customer=Customer.serialize)
 
 # create a new service given all information
@@ -201,25 +207,18 @@ def PostNewservice():
 		service = body.get('Service', '')
 		advisor = body.get('AdvisorName', '')
 		date = body.get('Date', '')
-		return create_new_service(sid, cid, service, advisor, date)
+		return create_new_service(cid, service, advisor, date)
 
 
 # get a specific service by service ID, or update service, or delete service
-@app.route('/servicesApi/<int:id>', methods=['GET', 'POST'])
+@app.route('/servicesApi/<int:id>', methods=['POST'])
 def servicesFunctionID(id):
-		if request.method == 'GET':
-				return get_service(id)
 
-		elif request.method == 'POST':
-
-				body = request.get_json(force=True)
-
-				first = body.get('FirstName', '')
-				last = body.get('LastName', '')
-				phone = body.get('PhoneNumber', '')
-				email = body.get('Email', '')
-				user = body.get('UserID', '')
-				return update_service(id, first, last, phone, email)
+		cid = body.get('CustomerID', '')
+		service = body.get('Service', '')
+		advisor = body.get('AdvisorName', '')
+		date = body.get('Date', '')
+		return update_service(sid, cid, service, advisor, date)
 
 
 # get a specific service by service ID, or update service, or delete service
@@ -245,6 +244,16 @@ def whichCustomer():
 				file2 = request.files.get('b', None);
 				file3 = request.files.get('c', None);
 
+				if file1 and file1.filename:
+                	file1.save(os.path.join(UPLOADS_PATH, secure_filename(file1.filename)))
+					a = 1
+				if file2 and file2.filename:
+					file2.save(os.path.join(UPLOADS_PATH, secure_filename(file2.filename)))
+
+					b = 1
+				if file3 and file3.filename:
+					file3.save(os.path.join(UPLOADS_PATH, secure_filename(file3.filename)))
+
 				# TODO: CALL THE BASH SCRIPT HERE ... conda activate && etc
 
 				# scrape csv file
@@ -257,7 +266,7 @@ def whichCustomer():
 if __name__ == '__main__':
 		pymysql.install_as_MySQLdb()
 		app.debug = True
-		http_server = WSGIServer(('', 4996), app)
-
-		http_server.serve_forever()
-		#app.run(host='0.0.0.0', port=4996)
+		#http_server = WSGIServer(('', 4996), app)
+		print("serving...forever")
+		#http_server.serve_forever()
+		app.run(host='0.0.0.0', port=4996)
