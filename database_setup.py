@@ -25,7 +25,7 @@ class Customer(Base):
 		FirstName = Column(String(50), nullable=False)
 		LastName = Column(String(50), nullable=False)
 		Email = Column(String(80), nullable=True)
-		PhoneNumber = Column(String(20), nullable=False)
+		PhoneNumber = Column(String(20), nullable=True)
 		VehicleType = Column(String(20), nullable=True)
 		# advisor name / license plate
 		LicensePlate = Column(String(10), nullable=False)

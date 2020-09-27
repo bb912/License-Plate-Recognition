@@ -72,19 +72,19 @@ from flask import jsonify
 
 # get a single Customer by its id number
 def get_customer(lp_num):
-		customer = session.query(Customer).filter_by(LicensePlate = lp_num).one()
-		return jsonify(Customer=Customer.serialize)
+		customer = session.query(Customer).filter_by(LicensePlate = lp_num).first()
+		return jsonify(Customer=customer.serialize)
 
 # create a new Customer given all information
-def create_customer(first_name, last_name, phone, email, lp_num):
-		add_customer = Customer(FirstName=first_name, LastName=last_name,
+def create_customer(first_name, last_name, phone, email, lp_num, vehicle):
+		added_customer = Customer(FirstName=first_name, LastName=last_name,
 														PhoneNumber=phone,
 														Email=email,
 														LicensePlate=lp_num,
 														VehicleType=vehicle)
-		session.add(added_Customer)
+		session.add(added_customer)
 		session.commit()
-		return "Added Customer with id %s" % added_Customer.ID
+		return "Added Customer with id %s" % added_customer.ID
 
 # delete Customer by Customer ID
 def delete_customer(id):
@@ -114,7 +114,7 @@ def update_customer(customer_id, first_name, last_name, phone, email, lp_num, ve
 		session.add(updated_Customer)
 		session.commit()
 
-		return "Updated Customer with id %s" % Customer_id
+		return "Updated Customer with id %s" % customer_id
 
 # list Customers or add a Customer (for a specific user)
 
@@ -123,11 +123,16 @@ def update_customer(customer_id, first_name, last_name, phone, email, lp_num, ve
 #POST request requires first_name, last_name, phone, email, user_id,
 
 #ADDING A Customer FOR A USER
-@app.route('/CustomersApi', methods=['POST'])
+@app.route('/CustomersApi', methods=['GET', 'POST'])
 def PostNewCustomer():
 
 		#if request.method == "OPTIONS": # CORS preflight
 		#		return _build_cors_prelight_response()
+
+
+		if request.method == 'GET':
+				lp = body.get('LicensePlate', '')
+				return get_customer(lp)
 
 		body = request.get_json(force=True)
 
@@ -137,26 +142,20 @@ def PostNewCustomer():
 		email = body.get('Email', '')
 		lp = body.get('LicensePlate', '')
 		vt = body.get('VehicleType', '')
-		return create_new_Customer(first, last, phone, email, lp, vt)
+		return create_customer(first, last, phone, email, lp, vt)
 
 
 # get a specific Customer by Customer ID, or update Customer, or delete Customer
-@app.route('/CustomersApi/<int:id>', methods=['GET', 'POST'])
+@app.route('/CustomersApi/<int:id>', methods=['POST'])
 #@cross_origin()
 def CustomersFunctionID(id):
-		if request.method == 'GET':
-				return get_Customer(id)
-
-		elif request.method == 'POST':
-
-				body = request.get_json(force=True)
-
-				first = body.get('FirstName', '')
-				last = body.get('LastName', '')
-				phone = body.get('PhoneNumber', '')
-				email = body.get('Email', '')
-				user = body.get('UserID', '')
-				return update_Customer(id, first, last, phone, email, lp, vt)
+		first = body.get('FirstName', '')
+		last = body.get('LastName', '')
+		phone = body.get('PhoneNumber', '')
+		email = body.get('Email', '')
+		lp = body.get('LicensePlate', '')
+		vt = body.get('VehicleType', '')
+		return update_customer(id, first, last, phone, email, lp, vt)
 
 
 # get a specific Customer by Customer ID, or update Customer, or delete Customer
@@ -275,10 +274,12 @@ def whichCustomer():
 					a = 1
 				if file2 and file2.filename:
 					file2.save(os.path.join(UPLOADS_PATH, secure_filename(file2.filename)))
-
 					b = 1
 				if file3 and file3.filename:
 					file3.save(os.path.join(UPLOADS_PATH, secure_filename(file3.filename)))
+
+
+				
 
 				# TODO: CALL THE BASH SCRIPT HERE ... conda activate && etc
 
