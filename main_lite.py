@@ -8,7 +8,7 @@ from database_setup import Base, Customer, Service
 from gevent.pywsgi import WSGIServer
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from flask_sqlalchemy import SQLalchemy
+from flask_sqlalchemy import SQLAlchemy
 import cv2
 app = Flask(__name__)
 
