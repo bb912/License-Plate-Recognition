@@ -9,7 +9,7 @@ from gevent.pywsgi import WSGIServer
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-import cv2
+from camera import VideoCamera
 app = Flask(__name__)
 
 # THIS IS WHERE THE UPLOADED FILES GET SAVED
@@ -30,22 +30,23 @@ def not_found():
 
 
 @app.route('/')
-def hello():
-	return 'Hello, World!'
+def index():
+    # rendering webpage
+    return render_template('index.html')
 
-def gen(video):
+
+def gen(camera):
     while True:
-        success, image = video.read()
-        ret, jpeg = cv2.imencode('.jpg', image)
-        frame = jpeg.tobytes()
+        #get camera frame
+        frame = camera.get_frame()
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n'))
+
 
 
 @app.route('/video_feed')
 def video_feed():
-    global video
-    return Response(gen(video),
+    return Response(gen(VideoCamera()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
