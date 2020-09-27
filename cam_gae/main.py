@@ -14,8 +14,8 @@ from twilio.rest import Client
 from typing import Type
 import json
 
-account_sid = 'ACe74ade1a0dd9ba0e825da280b846f30f'
-auth_token = '37307e2e779b4b0acb72ff873b73125f'
+#account_sid = SECRET
+#auth_token = SECRET
 client = Client(account_sid, auth_token)
 msg = ""
 link = "www.autonation.com"
