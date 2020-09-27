@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 # THIS IS WHERE THE UPLOADED FILES GET SAVED
 app.config['UPLOAD_FOLDER'] = '/tmp/cars'
-engine = create_engine('mysql+mysqlconnector://lp:plate@35.237.243.227/auto')
+engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto?unix_socket=cloudsql/auto-nation')
 Base.metadata.create_all(engine)
 
 DBSession = sessionmaker(bind=engine)
