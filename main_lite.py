@@ -11,6 +11,51 @@ from datetime import datetime
 from camera import VideoCamera
 import cv2
 
+from twilio.rest import Client
+from typing import Type
+import datetime
+
+account_sid = 'ACfa3ae5e3f45bc3117c8acdb2a746dda5'
+auth_token = '5367f96ec73961710eadd7cdcdfbe1a1'
+client = Client(account_sid, auth_token)
+msg = ""
+link = "www.autonation.com"
+
+
+def send_msg(msg, to):
+    message = client.messages.create(
+        from_='+?????',
+        body=msg,
+        to=to
+    )
+    return message
+
+
+def appointment_found(service, user):
+    msg = f"Greetings {service['AdvisorName']}!\n{user['FirstName']} {user['LastName']} is "\
+        f"here for their {service['Date']} appointment"
+    return send_msg(msg, service['AdvisorPhone'])
+
+
+def appointment_not_found(user):
+    msg = f"Greetings {user['FirstName']}!\nThank you for visiting AutoNation "\
+          f"We did not find any appointments for you today.\n\nIf you wish to"\
+          f" schedule a drive-in appointment you can do it directly from {link}"
+    return send_msg(msg, user['PhoneNumber'])
+
+
+def appointment_too_early(user, timediff):
+    msg = f"Greetings {user['FirstName']} {user['LastName']}!\nThank you for visiting AutoNation "\
+          f"It looks like you are {timediff} minutes early, please wait."
+
+    return send_msg(msg, user['PhoneNumber'])
+
+def appointment_late(user, timediff):
+    msg = f"Greetings {user['FirstName']} {user['LastName']}!\nThank you for visiting AutoNation "\
+          f"It looks like you are {timediff} minutes late. Would you like to reschedule at {link}?"
+    return send_msg(msg, user['PhoneNumber'])
+
+
 app = Flask(__name__)
 
 # THIS IS WHERE THE UPLOADED FILES GET SAVED
@@ -175,34 +220,34 @@ Service API
 """
 
 # get a single Customer by its id number
-def get_services(lp_num):
-		service = session.query(Customer).filter_by(LicensePlate = lp_num)
-		return jsonify(Customer=Customer.serialize)
+def get_services(customer_id):
+		service = session.query(Service).filter_by(CustomerID = customer_id)
+		return jsonify(Service=serv.serialize for serv in service)
 
 # create a new service given all information
-def create_service(customer_id, service, advisor_name, date):
-		add_service = service(CustomerID=customer_id, Service=service,
+def create_service(customer_id, service, advisor_name):
+		add_service = Service(CustomerID=customer_id, Service=service,
 														AdvisorName=advisor_name,
-														Date=date)
+														Date=datetime.now())
 		session.add(added_service)
 		session.commit()
 		return "Added service with id %s" % added_service.ID
 
 # delete service by service ID
 def delete_service(id):
-		service_to_delete = session.query(service).filter_by(ID=id).one()
+		service_to_delete = session.query(Service).filter_by(ID=id).one()
 		session.delete(service_to_delete)
 		session.commit()
 		return "Removed service with id %s" % id
 
 
 # update an existing service
-def update_service(service_id, customer_id, service, advisor_name, date):
+def update_service(service_id, customer_id, service, advisor_name, date, advisor_phone):
 
 		if not service_id:
 			return "Error, include sevice_id"
 
-		updated_service = session.query(service).filter_by(ID=service_id).one()
+		updated_service = session.query(Service).filter_by(ID=service_id).one()
 
 		if customer_id:
 				updated_service.CustomerID = customer_id
@@ -212,6 +257,8 @@ def update_service(service_id, customer_id, service, advisor_name, date):
 				updated_service.AdvisorName = advisor_name
 		if date:
 				updated_service.Date = date
+		if advisor_phone:
+				updated_service.AdvisorPhone = advisor_phone
 
 
 		session.add(updated_service)
@@ -232,18 +279,19 @@ def PostNewservice():
 		service = body.get('Service', '')
 		advisor = body.get('AdvisorName', '')
 		date = body.get('Date', '')
-		return create_new_service(cid, service, advisor, date)
+		phone = body.get('AdvisorPhone', '')
+		return create_new_service(cid, service, advisor, date, phone)
 
 
 # get a specific service by service ID, or update service, or delete service
-@app.route('/servicesApi/<int:id>', methods=['POST'])
+@app.route('/servicesApi/<int:sid>', methods=['POST'])
 def servicesFunctionID(id):
-
+		phone = body.get('AdvisorPhone', '')
 		cid = body.get('CustomerID', '')
 		service = body.get('Service', '')
 		advisor = body.get('AdvisorName', '')
 		date = body.get('Date', '')
-		return update_service(sid, cid, service, advisor, date)
+		return update_service(sid, cid, service, advisor, date, phone)
 
 
 # get a specific service by service ID, or update service, or delete service
@@ -259,6 +307,52 @@ def servicesFunctionDelete(id):
 Photo uploading endpoints and user searching
 
 """
+@app.route('/NumsBack/', methods=['GET'])
+def lp_back(lp):
+	body = request.get_json(force=True)
+
+	# send back the licenses in a json with a, b ,c keys
+	num1 = body.get('a', '')
+	num2 = body.get('b', '')
+	num3 = body.get('c', '')
+
+
+	# for each of the three pics
+	for num in [num1, num2, num3]:
+		# get person associated with num
+		person = get_customer(num)
+
+		if person is not None:
+			break
+		# get id associated with lp_num
+	id = person.get('id', '')
+
+
+	if id is not None:
+		today = datetime.date
+		servs = get_services(id)
+		for service in servs:
+			if service.get('Date').day != today:
+				continue
+			else:
+				time_diff = datetime.time - service.get('Date').time
+
+				# time diff greater than 30 min
+				if time_diff > 30:
+					sent_msg = appointment_late(person, service)
+					return
+				elif time_diff < 30 and time_diff > 10:
+					sent_msg = appointment_too_early(person, sevice)
+					return
+
+
+		sent_msg = appointment_found(service, person)
+	else:
+		sent_msg = appointment_not_found(person)
+
+		return
+
+
 
 # for updating User's personal information
 @app.route('/whichCustomer', methods=['POST'])
@@ -279,7 +373,7 @@ def whichCustomer():
 					file3.save(os.path.join(UPLOADS_PATH, secure_filename(file3.filename)))
 
 
-				
+
 
 				# TODO: CALL THE BASH SCRIPT HERE ... conda activate && etc
 

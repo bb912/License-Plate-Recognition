@@ -23,21 +23,25 @@ def send_msg(msg, to):
 
 
 def appointment_found(service, user):
-    msg = f"Greetings {service['advisor_name']}!\n{user['first']} {user['last']} is "\
-        f"here for their {service['time']} appointment"
-    return send_msg(msg, service['adviser_number'])
+    msg = f"Greetings {service['AdvisorName']}!\n{user['FirstName']} {user['LastName']} is "\
+        f"here for their {service['Date']} appointment"
+    return send_msg(msg, service['AdvisorPhone'])
 
 
 def appointment_not_found(user):
-    msg = f"Greetings {user['first']}!\nThank you for visiting AutoNation "\
+    msg = f"Greetings {user['FirstName']}!\nThank you for visiting AutoNation "\
           f"We did not find any appointments for you today.\n\nIf you wish to"\
           f" schedule a drive-in appointment you can do it directly from {link}"
-    return send_msg(msg, user['customer_number'])
+    return send_msg(msg, user['PhoneNumber'])
 
 
 def appointment_too_early(user, timediff):
-    msg = f"Greetings {user['first']} {user['last']}!\nThank you for visiting AutoNation "\
+    msg = f"Greetings {user['FirstName']} {user['LastName']}!\nThank you for visiting AutoNation "\
           f"It looks like you are {timediff} minutes early, do"
+
+def appointment_late(user, timediff):
+    msg = f"Greetings {user['FirstName']} {user['LastName']}!\nThank you for visiting AutoNation "\
+          f"It looks like you are {timediff} minutes late. Would you like to reschedule at {link}?"
 
 
 print(appointment_not_found(scheema_object))

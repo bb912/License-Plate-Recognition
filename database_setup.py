@@ -55,9 +55,10 @@ class Service(Base):
 	CustomerID = Column(Integer, nullable=False)
 	Service = Column(String(80), nullable=False)
 	AdvisorName = Column(String(20), nullable=False)
+	AdvisorPhone = Column(String(20), nullable=False)
 
 	# TODO: Date time object?????
-	Date = Column(String(50), nullable=False)
+	Date = Column(Datetime, nullable=False)
 
 	@property
 	def serialize(self):
@@ -66,7 +67,8 @@ class Service(Base):
 					'ID': self.ID,
 					'Service': self.Service,
 					'Date' : self.Date,
-					'AdvisorName': self.AdvisorName
+					'AdvisorName': self.AdvisorName,
+					'AdvisorPhone': self.AdvisorPhone
 			}
 
 # Create an engine that stores data in the local directory's
