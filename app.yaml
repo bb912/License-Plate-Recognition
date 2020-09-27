@@ -1,5 +1,0 @@
-runtime: python37
-entrypoint: gunicorn -b :$PORT myapp:app
-
-env_variables:
-  SQL_STRING: mysql+mysqlconnector://lp:plate@35.237.243.227/auto

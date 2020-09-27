@@ -8,51 +8,51 @@ from database_setup import Base, Customer, Service
 from gevent.pywsgi import WSGIServer
 from werkzeug.utils import secure_filename
 from datetime import datetime
-
-
+import time
+import sys
 from twilio.rest import Client
 from typing import Type
 import json
 
-account_sid = 'ACfa3ae5e3f45bc3117c8acdb2a746dda5'
-auth_token = '7e15399f44e042b97717e65304363462'
+account_sid = 'ACe74ade1a0dd9ba0e825da280b846f30f'
+auth_token = '37307e2e779b4b0acb72ff873b73125f'
 client = Client(account_sid, auth_token)
 msg = ""
 link = "www.autonation.com"
 
 
 def send_msg(msg, to):
-    message = client.messages.create(
-        from_='+14708237238',
-        body=msg,
-        to=to
-    )
-    return message
+	message = client.messages.create(
+		from_='+15716424660',
+		body=msg,
+		to=to
+	)
+	return message
 
 
 def appointment_found(service, user):
-    msg = f"Greetings {service.AdvisorName}!\n{user.FirstName} {user.LastName} is "\
-        f"here for their {service.Date.time()} appointment"
-    return send_msg(msg, service.AdvisorPhone)
+	msg = f"Greetings {service.AdvisorName}!\n{user.FirstName} {user.LastName} is "\
+		f"here for their {service.Date.time()} appointment"
+	return send_msg(msg, service.AdvisorPhone)
 
 
 def appointment_not_found(user):
-    msg = f"Greetings {user.FirstName}!\nThank you for visiting AutoNation "\
-          f"We did not find any appointments for you today.\n\nIf you wish to"\
-          f" schedule a drive-in appointment you can do it directly from {link}"
-    return send_msg(msg, user.PhoneNumber)
+	msg = f"Greetings {user.FirstName}!\nThank you for visiting AutoNation "\
+		  f"We did not find any appointments for you today.\n\nIf you wish to"\
+		  f" schedule a drive-in appointment you can do it directly from {link}"
+	return send_msg(msg, user.PhoneNumber)
 
 
 def appointment_too_early(user, timediff):
-    msg = f"Greetings {user.FirstName} {user.LastName}!\nThank you for visiting AutoNation "\
-          f"It looks like you are {timediff} minutes early, please wait."
+	msg = f"Greetings {user.FirstName} {user.LastName}!\nThank you for visiting AutoNation "\
+		  f"It looks like you are {timediff} minutes early, please wait."
 
-    return send_msg(msg, user['PhoneNumber'])
+	return send_msg(msg, user['PhoneNumber'])
 
 def appointment_late(user, timediff):
-    msg = f"Greetings {user.FirstName} {user.LastName}!\nThank you for visiting AutoNation "\
-          f"It looks like you are {timediff} minutes late. Would you like to reschedule at {link}?"
-    return send_msg(msg, user['PhoneNumber'])
+	msg = f"Greetings {user.FirstName} {user.LastName}!\nThank you for visiting AutoNation "\
+		  f"It looks like you are {timediff} minutes late. Would you like to reschedule at {link}?"
+	return send_msg(msg, user['PhoneNumber'])
 
 
 app = Flask(__name__)
@@ -61,9 +61,8 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = '/tmp/cars'
 #engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto')
 #engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto?unix_socket=cloudsql/auto-nation')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sqlalchemy_example.db'
-!sudo chmod 664 sqlalchemy_example.db
-engine = create_engine('sqlite:///sqlalchemy_example.db', pool_pre_ping=True)
+
+engine = create_engine('sqlite:///sqlalchemy_example.db')
 # Bind the engine to the metadata of the Base class so that the
 # declaratives can be accessed through a DBSession instance
 Base.metadata.bind = engine
@@ -79,8 +78,8 @@ def not_found():
 
 @app.route('/')
 def index():
-    # rendering webpage
-    return "Hello World"
+	# rendering webpage
+	return render_template('index.html')
 
 
 
@@ -338,17 +337,17 @@ def lp_back():
 				# time diff greater than 30 min
 				if time_diff > 30:
 					sent_msg = appointment_late(person, service)
-					return "message sent, appt late"
+					return person
 				elif time_diff < 30 and time_diff > 10:
 					sent_msg = appointment_too_early(person, sevice)
-					return "message sent, appt early"
+					return person
 
 
 		sent_msg = appointment_found(service, person)
 	else:
 		sent_msg = appointment_not_found(person)
 
-		return "message has been sent"
+		return person
 
 
 
@@ -381,6 +380,60 @@ def whichCustomer():
 
 				return None
 
+# for sending CAR and PLATE images to cluster and getting back the license numbers
+#
+@app.route('/files_to_cluster', methods=['POST'])
+#@cross_origin()
+def files_to_cluster():
+		file_names = ['back_car.jpg']
+		port = 53523
+		hostname = '104.154.29.194'
+		csv = client_1(hostname, port, file_names)
+
+		csv = csv.decode()
+
+		a = pd.read_csv(csv)
+		print(a)
+
+import socket
+def client_1(hostname, port, file_names):
+	try:
+		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+			s.settimeout(50)
+			s.connect((hostname, port))
+			s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+			for file in file_names:
+				data = b''
+				while True:
+					data += s.recv(1024)
+					if b'\r\n' in data:
+						break
+				s.setblocking(False)
+				s.settimeout(10)
+				with open(file, 'br') as f:
+					f_contents = f.read()
+					while True:
+						if len(f_contents) > 2048:
+							s.send(f_contents[:2048])
+							f_contents = f_contents[2048:]
+						else:
+							s.send(f_contents)
+							time.sleep(3)
+							break
+			while True:
+				data += s.recv(1024)
+				if b'\r\n' in data:
+					return data
+	except (socket.timeout, TimeoutError):
+		sys.stderr.write("ERROR: Timeout error.\n")
+		sys.exit(69)
+	except (ConnectionError, socket.gaierror):
+		sys.stderr.write("ERROR: Incorrect HOSTNAME or PORT.\n")
+		sys.exit(68)
+	except (OverflowError):
+		sys.stderr.write("ERROR: Incorrect PORT. Must be in range 0 - 65535\n")
+		sys.exit(65)
+
 
 if __name__ == '__main__':
 		pymysql.install_as_MySQLdb()
@@ -388,4 +441,4 @@ if __name__ == '__main__':
 		#http_server = WSGIServer(('', 4996), app)
 		print("serving...forever")
 		#http_server.serve_forever()
-		app.run(host='127.0.0.1', port=8080, debug=True)
+		app.run(host='0.0.0.0', port=5012, debug=True)
