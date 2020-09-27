@@ -1,0 +1,5 @@
+Flask
+hashlib
+sqlalchemy
+gevent
+wekzeug
