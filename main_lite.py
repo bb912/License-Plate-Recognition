@@ -8,7 +8,6 @@ from database_setup import Base, Customer, Service
 from gevent.pywsgi import WSGIServer
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
 from camera import VideoCamera
 import cv2
 
@@ -18,12 +17,15 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = '/tmp/cars'
 #engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto')
 #engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto?unix_socket=cloudsql/auto-nation')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
-db = SQLAlchemy(app)
-db.create_all()
 
-DBSession = sessionmaker(bind=db)
+engine = create_engine('sqlite:///sqlalchemy_example.db')
+# Bind the engine to the metadata of the Base class so that the
+# declaratives can be accessed through a DBSession instance
+Base.metadata.bind = engine
+DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+
 video = cv2.VideoCapture(0)
 
 @app.errorhandler(404)
