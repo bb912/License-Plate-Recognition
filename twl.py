@@ -2,8 +2,8 @@ from twilio.rest import Client
 from typing import Type
 
 
-account_sid = 'ACfa3ae5e3f45bc3117c8acdb2a746dda5'
-auth_token = '5367f96ec73961710eadd7cdcdfbe1a1'
+account_sid = ''
+auth_token = ''
 client = Client(account_sid, auth_token)
 msg = ""
 scheema_object = {'adviser': 'Angel', 'customer_name': 'Brand',
