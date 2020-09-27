@@ -17,9 +17,9 @@ app.config['UPLOAD_FOLDER'] = '/tmp/cars'
 #engine = create_engine('mysql+pymysql://lp:plate@35.237.243.227/auto?unix_socket=cloudsql/auto-nation')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 db = SQLAlchemy(app)
-Base.metadata.create_all(engine)
+db.create_all()
 
-DBSession = sessionmaker(bind=engine)
+DBSession = sessionmaker(bind=db)
 session = DBSession()
 
 
