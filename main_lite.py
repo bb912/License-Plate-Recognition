@@ -9,6 +9,7 @@ from gevent.pywsgi import WSGIServer
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_sqlalchemy import SQLalchemy
+import cv2
 app = Flask(__name__)
 
 # THIS IS WHERE THE UPLOADED FILES GET SAVED
@@ -21,7 +22,7 @@ db.create_all()
 
 DBSession = sessionmaker(bind=db)
 session = DBSession()
-
+video = cv2.VideoCapture(0)
 
 @app.errorhandler(404)
 def not_found():
@@ -31,14 +32,32 @@ def not_found():
 @app.route('/')
 def hello():
 	return 'Hello, World!'
+
+def gen(video):
+    while True:
+        success, image = video.read()
+        ret, jpeg = cv2.imencode('.jpg', image)
+        frame = jpeg.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+
+@app.route('/video_feed')
+def video_feed():
+    global video
+    return Response(gen(video),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+
 """
 
 Customers API
-@app.route('/CustomersApi', methods=['POST'])
+app.route('/CustomersApi', methods=['POST'])
 		-add new customers for database input
-@app.route('/CustomersApi/<int:id>', methods=['GET', 'POST'])
+app.route('/CustomersApi/<int:id>', methods=['GET', 'POST'])
 		-update or get customer based on id
-@app.route('/CustomersApi/<int:id>/delete', methods=['POST'])
+app.route('/CustomersApi/<int:id>/delete', methods=['POST'])
 		-delete customer based on id
 
 
@@ -101,7 +120,7 @@ def update_customer(customer_id, first_name, last_name, phone, email, lp_num, ve
 #ADDING A Customer FOR A USER
 @app.route('/CustomersApi', methods=['POST'])
 def PostNewCustomer():
-			
+
 		#if request.method == "OPTIONS": # CORS preflight
 		#		return _build_cors_prelight_response()
 
