@@ -10,6 +10,8 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from camera import VideoCamera
+import cv2
+
 app = Flask(__name__)
 
 # THIS IS WHERE THE UPLOADED FILES GET SAVED
@@ -40,7 +42,7 @@ def gen(camera):
         #get camera frame
         frame = camera.get_frame()
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n'))
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 
 
